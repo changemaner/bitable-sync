@@ -1,0 +1,20 @@
+{
+  "bitables": [
+    {
+      "name": "功能测试多维表",
+      "url": "https://j0eukrlohu.feishu.cn/base/FaKibNzneajMaSspa5Pc2ikQnzd?table=tblw9kYILKt9FjNL&view=vewiUfKPfQ",
+      "tables": [
+        { "tableId": "tbl3EpCJ1W8mThIY", "name": "HZ006-考核汇总表（不含院外）" },
+        { "tableId": "tblZKjmX65xfIhpE", "name": "MX002.1.1-25-26年健康元健可妥日流向" },
+        { "tableId": "tblvLxe5Cbpayt7t", "name": "HZ007-考核汇总表（含院外）" },
+        { "tableId": "tbl0pHrbiZEGJ9LK", "name": "MX002.3-健康元健可顺日流向" }
+      ]
+    }
+  ],
+  "chromeUserDataDir": "C:\\Users\\azhe\\AppData\\Local\\Google\\Chrome\\User Data",
+  "chromeProfile": "Default",
+  "syncTimeoutMs": 60000,
+  "headless": false,
+  "maxRetries": 2,
+  "retryDelayMs": 3000
+}

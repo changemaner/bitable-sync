@@ -1,0 +1,6 @@
+node_modules/
+.opencli/
+.playwright-mcp/
+.sync-progress.json
+*.png
+nul
