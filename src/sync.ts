@@ -2,6 +2,11 @@ import { chromium } from 'playwright';
 import notifier from 'node-notifier';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import {
+  applyFatalExit,
+  buildBrowserArgs,
+  getBrowserChannels,
+} from './runtime';
 
 interface TableConfig {
   tableId: string;
@@ -18,6 +23,7 @@ interface Config {
   bitables: BitableConfig[];
   chromeUserDataDir: string;
   chromeProfile: string;
+  browserChannel?: 'chrome' | 'msedge';
   cdpUrl: string;
   syncTimeoutMs: number;
   headless: boolean;
@@ -74,24 +80,43 @@ async function loadConfig(): Promise<Config> {
   };
 }
 
-async function launchChrome(userDataDir: string, profile: string, headless: boolean) {
-  const profileDir = join(userDataDir, profile);
-  console.log(`[browser] Launching Chrome with profile: ${profileDir}`);
+async function launchBrowser(userDataDir: string, profile: string, headless: boolean, preferredChannel?: 'chrome' | 'msedge') {
+  const channels = getBrowserChannels(preferredChannel);
+  const launchErrors: string[] = [];
 
-  const context = await chromium.launchPersistentContext(profileDir, {
-    channel: 'chrome',
-    headless,
-    viewport: { width: 1440, height: 900 },
-    args: [
-      '--disable-blink-features=AutomationControlled',
-      '--disable-infobars',
-      '--no-first-run',
-      '--no-default-browser-check',
-    ],
-  });
+  console.log(`[browser] User data dir: ${userDataDir}`);
+  console.log(`[browser] Profile: ${profile || 'Default browser profile'}`);
 
-  console.log('[browser] Chrome launched successfully');
-  return context;
+  for (const channel of channels) {
+    try {
+      console.log(`[browser] Trying browser channel: ${channel}`);
+
+      const context = await chromium.launchPersistentContext(userDataDir, {
+        channel,
+        headless,
+        viewport: { width: 1440, height: 900 },
+        args: buildBrowserArgs(profile),
+      });
+
+      console.log(`[browser] Browser launched successfully with channel: ${channel}`);
+      return context;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      launchErrors.push(`${channel}: ${message}`);
+      console.error(`[browser] Failed to launch ${channel}: ${message}`);
+    }
+  }
+
+  throw new Error(
+    [
+      'Unable to launch a supported browser.',
+      `Checked channels: ${channels.join(', ')}`,
+      `User data dir: ${userDataDir}`,
+      `Profile: ${profile || 'Default'}`,
+      'Please confirm Chrome or Edge is installed and that config.json points to the correct browser profile.',
+      `Launch errors: ${launchErrors.join(' | ')}`,
+    ].join('\n')
+  );
 }
 
 async function waitForPageLoad(page: any, timeoutMs = 30000) {
@@ -351,7 +376,7 @@ function showNotification(results: SyncResult[]) {
   );
 }
 
-async function main() {
+export async function main() {
   console.log('=== 飞书多维表格引用数据表同步工具 ===\n');
 
   const config = await loadConfig();
@@ -362,10 +387,11 @@ async function main() {
   const elapsed = Math.round((Date.now() - progress.startTime) / 1000);
   console.log(`[progress] ${progress.completed.length} completed, ${progress.failed.length} failed (last run: ${elapsed}s ago)`);
 
-  const context = await launchChrome(
+  const context = await launchBrowser(
     config.chromeUserDataDir,
     config.chromeProfile,
-    config.headless
+    config.headless,
+    config.browserChannel
   );
 
   const allResults: SyncResult[] = [];
@@ -407,4 +433,6 @@ async function main() {
   }
 }
 
-main().catch(console.error);
+if (require.main === module) {
+  main().catch(applyFatalExit);
+}

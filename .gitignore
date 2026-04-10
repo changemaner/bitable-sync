@@ -1,4 +1,5 @@
 node_modules/
+logs/
 .opencli/
 .playwright-mcp/
 .sync-progress.json

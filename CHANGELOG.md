@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.1.1] - 2026-04-10
+
+### Added
+- 新增 `src/runtime.ts` 和 `test/runtime.test.ts`，覆盖浏览器渠道回退、Profile 参数构造和致命错误退出行为。
+
+### Fixed
+- 修复 `run_sync.bat` 在业务电脑首次安装依赖后，脚本启动失败但窗口直接关闭、用户看不到错误的问题。
+- 修复浏览器启动强依赖 `chrome` 渠道的问题，现在会在 `chrome` 不可用时自动回退到 `msedge`。
+- 修复传给 Playwright 的用户数据目录参数，避免把 Profile 路径当成新的用户数据根目录使用。
+- 修复顶层异常只打印不失败退出的问题，启动失败时现在会返回非 0 退出码。
+
+### Changed
+- `run_sync.bat` 失败时会把运行日志写入 `logs\\last_run.log`，同时在窗口中打印日志内容并暂停，便于业务人员截图或反馈。
+- `config.json` 和《使用指南.md》补充 `browserChannel` 配置说明，以及“窗口一闪而过时查看日志”的排查路径。
+
 ## [1.1.0] - 2026-04-10
 
 ### Added
